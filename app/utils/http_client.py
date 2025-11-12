@@ -5,7 +5,7 @@ async def get_user(user_id: str, token: str):
     async with httpx.AsyncClient() as client:
         response = await client.get(
             f"{settings.user_service_url}/api/v1/users/{user_id}",
-            headers={"Authorization": f"Bearer {token}"},
+            headers={"Authorization": token},
             timeout=10.0
         )
         response.raise_for_status()

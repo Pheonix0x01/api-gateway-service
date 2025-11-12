@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Header
 from app.api.v1.schemas import NotificationRequest, GenericResponse, Meta
 from app.api.dependencies import verify_token
 from app.utils.redis_client import redis_client
@@ -11,6 +11,7 @@ router = APIRouter()
 @router.post("/", response_model=GenericResponse)
 async def create_notification(
     request: NotificationRequest,
+    authorization: str = Header(...),
     token_data: dict = Depends(verify_token)
 ):
     idempotency_key = f"notification:{request.request_id}"
@@ -23,10 +24,8 @@ async def create_notification(
             meta=Meta(total=1, limit=1, page=1, total_pages=1, has_next=False, has_previous=False)
         )
     
-    auth_header = f"Bearer {json.loads(token_data.get('token', '{}'))}"
-    
     try:
-        user = await get_user(str(request.user_id), auth_header)
+        user = await get_user(str(request.user_id), authorization)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -41,11 +40,15 @@ async def create_notification(
             detail=f"Template not found: {str(e)}"
         )
     
+    variables_dict = request.variables.model_dump()
+    if "link" in variables_dict and hasattr(variables_dict["link"], "__str__"):
+        variables_dict["link"] = str(variables_dict["link"])
+    
     message = {
         "notification_type": request.notification_type.value,
         "user_id": str(request.user_id),
         "template_code": request.template_code,
-        "variables": request.variables.model_dump(),
+        "variables": variables_dict,
         "request_id": request.request_id,
         "priority": request.priority,
         "metadata": request.metadata
