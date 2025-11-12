@@ -25,7 +25,8 @@ async def create_notification(
         )
     
     try:
-        user = await get_user(str(request.user_id), authorization)
+        user_response = await get_user(str(request.user_id), authorization)
+        user = user_response.get("data", {})
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -43,6 +44,13 @@ async def create_notification(
     variables_dict = request.variables.model_dump()
     if "link" in variables_dict and hasattr(variables_dict["link"], "__str__"):
         variables_dict["link"] = str(variables_dict["link"])
+    
+
+    if request.notification_type.value == "push":
+        push_token = user.get("push_token")
+        if not push_token: #allowing mock for testing
+            push_token = variables_dict.get("push_token", "mock-fcm-token-for-testing")
+        variables_dict["push_token"] = push_token
     
     message = {
         "notification_type": request.notification_type.value,
