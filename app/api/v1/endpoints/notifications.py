@@ -12,7 +12,7 @@ router = APIRouter()
 async def create_notification(
     request: NotificationRequest,
     #authorization: str = Header(...),
-    token_data: dict = Depends(verify_token)
+    #token_data: dict = Depends(verify_token)
 ):
     idempotency_key = f"notification:{request.request_id}"
     
