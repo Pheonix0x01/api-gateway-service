@@ -21,6 +21,13 @@ jobs:
         run: curl -LsSf https://astral.sh/uv/install.sh | sh
 
       - name: Run tests
+        env:
+          RABBITMQ_URL: amqp://guest:guest@localhost:5672/
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: test-secret-key-for-ci
+          STATUS_STORE_URL: redis://localhost:6379
+          USER_SERVICE_URL: http://localhost:8000
+          TEMPLATE_SERVICE_URL: http://localhost:8080
         run: |
           uv venv
           source .venv/bin/activate
