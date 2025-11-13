@@ -11,8 +11,8 @@ router = APIRouter()
 @router.post("/", response_model=GenericResponse)
 async def create_notification(
     request: NotificationRequest,
-    #authorization: str = Header(...),
-    #token_data: dict = Depends(verify_token)
+    authorization: str = Header(...),
+    token_data: dict = Depends(verify_token)
 ):
     idempotency_key = f"notification:{request.request_id}"
     
@@ -25,7 +25,7 @@ async def create_notification(
         )
     
     try:
-        user_response = await get_user(str(request.user_id))
+        user_response = await get_user(str(request.user_id), authorization=authorization)
         user = user_response.get("data", {})
     except Exception as e:
         raise HTTPException(
