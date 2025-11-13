@@ -25,7 +25,7 @@ async def create_notification(
         )
     
     try:
-        user_response = await get_user(str(request.user_id), authorization=authorization)
+        user_response = await get_user(str(request.user_id), authorization)
         user = user_response.get("data", {})
     except Exception as e:
         raise HTTPException(
